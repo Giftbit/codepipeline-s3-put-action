@@ -21,19 +21,19 @@ export function handler(event: CodePipelineEvent, context: awslambda.Context, ca
 }
 
 async function handlerAsync(event: CodePipelineEvent, context: awslambda.Context): Promise<any> {
+    const job: CodePipelineJob = event["CodePipeline.job"];
     try {
-        const job: CodePipelineJob = event["CodePipeline.job"];
         const s3PutConfiguration: S3PutConfiguration = getS3PutConfigurationFromJob(job);
         const resolvedObjectKey = await resolveObjectKey(s3PutConfiguration.ObjectKey, job);
 
         await copyArtifactResourceToS3(s3PutConfiguration.ObjectPath, s3PutConfiguration.BucketName, resolvedObjectKey, job);
         await codepipeline.putJobSuccessResult({
-            jobId: job.jobId
+            jobId: job.id
         }).promise();
     }
     catch (err) {
         await codepipeline.putJobFailureResult({
-            jobId: job.jobId,
+            jobId: job.id,
             failureDetails: {
                 type: "JobFailed",
                 message: err.message,
