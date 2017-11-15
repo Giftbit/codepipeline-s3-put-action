@@ -6,6 +6,7 @@ import {S3PutConfiguration} from "./S3PutCodePipelineConfiguration";
 import * as JSZip from "jszip";
 
 export let s3 = new AWS.S3();
+export let codepipeline = new AWS.CodePipeline();
 
 //noinspection JSUnusedGlobalSymbols
 export function handler(event: CodePipelineEvent, context: awslambda.Context, callback: awslambda.Callback): void {
@@ -20,12 +21,27 @@ export function handler(event: CodePipelineEvent, context: awslambda.Context, ca
 }
 
 async function handlerAsync(event: CodePipelineEvent, context: awslambda.Context): Promise<any> {
-    const job: CodePipelineJob = event["CodePipeline.job"];
-    const s3PutConfiguration: S3PutConfiguration = getS3PutConfigurationFromJob(job);
-    const resolvedObjectKey = await resolveObjectKey(s3PutConfiguration.ObjectKey, job);
-    const objectPath = s3PutConfiguration.ObjectPath;
+    try {
+        const job: CodePipelineJob = event["CodePipeline.job"];
+        const s3PutConfiguration: S3PutConfiguration = getS3PutConfigurationFromJob(job);
+        const resolvedObjectKey = await resolveObjectKey(s3PutConfiguration.ObjectKey, job);
 
-    await copyArtifactResourceToS3(objectPath, s3PutConfiguration.BucketName, s3PutConfiguration.ObjectKey, job);
+        await copyArtifactResourceToS3(s3PutConfiguration.ObjectPath, s3PutConfiguration.BucketName, resolvedObjectKey, job);
+        await codepipeline.putJobSuccessResult({
+            jobId: job.jobId
+        }).promise();
+    }
+    catch (err) {
+        await codepipeline.putJobFailureResult({
+            jobId: job.jobId,
+            failureDetails: {
+                type: "JobFailed",
+                message: err.message,
+                externalExecutionId: context.awsRequestId
+            }
+        }).promise();
+        return;
+    }
 }
 
 export function getS3PutConfigurationFromJob(job: CodePipelineJob): S3PutConfiguration {
@@ -84,7 +100,13 @@ export async function getBodyFromZippedS3Object(bucketName: string, key: string,
 
     const zip = new JSZip();
     await zip.loadAsync(s3Object.Body as Buffer);
-    return await zip.file(filename).async('nodebuffer');
+    const file = zip.file(filename);
+
+    if (!file) {
+        throw new Error(`Unable to get file from artifact object. File '${filename}' was not found.`)
+    }
+
+    return await file.async('nodebuffer');
 }
 
 export async function copyArtifactResourceToS3(objectPath: string, destinationBucketName: string, destinationObjectKey: string, job: CodePipelineJob): Promise<void> {
