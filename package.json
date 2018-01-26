@@ -1,7 +1,7 @@
 {
-  "name": "codepipeline-cloudformation-create-change-set-s3",
+  "name": "odepipeline-s3-put-action",
   "version": "0.1.0",
-  "description": "CodePipeline Custom Action to Create a CloudFormation ChangeSet using S3.",
+  "description": "CodePipeline Custom Action to put Pipeline Resources into S3.",
   "scripts": {
     "build": "webpack",
     "clean": "rimraf ./dist",
