@@ -1,4 +1,3 @@
-import "babel-polyfill";
 import * as AWS from "aws-sdk";
 import * as awslambda from "aws-lambda";
 import {CodePipelineEvent, CodePipelineJob, CodePipelineS3Location} from "./CodePipelineEvent";
@@ -9,18 +8,9 @@ export let s3 = new AWS.S3();
 export let codepipeline = new AWS.CodePipeline();
 
 //noinspection JSUnusedGlobalSymbols
-export function handler(event: CodePipelineEvent, context: awslambda.Context, callback: awslambda.Callback): void {
+async function handler(event: CodePipelineEvent, context: awslambda.Context): Promise<any> {
     console.log("event", JSON.stringify(event, null, 2));
-    handlerAsync(event, context)
-        .then(res => {
-            callback(undefined, res);
-        }, err => {
-            console.error(JSON.stringify(err, null, 2));
-            callback(err);
-        });
-}
 
-async function handlerAsync(event: CodePipelineEvent, context: awslambda.Context): Promise<any> {
     const job: CodePipelineJob = event["CodePipeline.job"];
     try {
         const s3PutConfiguration: S3PutConfiguration = getS3PutConfigurationFromJob(job);
@@ -48,11 +38,11 @@ export function getS3PutConfigurationFromJob(job: CodePipelineJob): S3PutConfigu
     return JSON.parse(job.data.actionConfiguration.configuration.UserParameters) as S3PutConfiguration;
 }
 
-export function getS3LocationForInputArtifact(artifactName: string, job:CodePipelineJob): CodePipelineS3Location {
-    const artifact = job.data.inputArtifacts.find((artifact) => artifact.name == artifactName);
+export function getS3LocationForInputArtifact(artifactName: string, job: CodePipelineJob): CodePipelineS3Location {
+    const artifact = job.data.inputArtifacts.find((artifact) => artifact.name === artifactName);
 
     if (artifact) {
-        return artifact.location.s3Location
+        return artifact.location.s3Location;
     }
     return null;
 }
@@ -75,10 +65,10 @@ export async function resolveObjectKey(objectKey: string, job: CodePipelineJob):
         }
 
         if (!jsonKey) {
-            return fileBody.toString('utf-8');
+            return fileBody.toString("utf-8");
         }
 
-        const fileJson = JSON.parse(fileBody.toString('utf-8'));
+        const fileJson = JSON.parse(fileBody.toString("utf-8"));
         const value = fileJson[jsonKey];
 
         if (!value) {
@@ -103,10 +93,10 @@ export async function getBodyFromZippedS3Object(bucketName: string, key: string,
     const file = zip.file(filename);
 
     if (!file) {
-        throw new Error(`Unable to get file from artifact object. File '${filename}' was not found.`)
+        throw new Error(`Unable to get file from artifact object. File '${filename}' was not found.`);
     }
 
-    return await file.async('nodebuffer');
+    return await file.async("nodebuffer");
 }
 
 export async function copyArtifactResourceToS3(objectPath: string, destinationBucketName: string, destinationObjectKey: string, job: CodePipelineJob): Promise<void> {

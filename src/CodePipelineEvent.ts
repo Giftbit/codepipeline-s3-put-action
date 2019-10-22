@@ -24,7 +24,7 @@ export interface CodePipelineJob {
             accessKeyId: string;
         },
         continuationToken: string;
-    }
+    };
 
 }
 

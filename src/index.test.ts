@@ -13,7 +13,7 @@ describe("create-change-set-s3", () => {
         it("Returns an S3PutCodePipelineConfiguration object", () => {
             const changeSetCreateConfiguration = index.getS3PutConfigurationFromJob(sampleJob);
 
-            const expected : S3PutConfiguration = {
+            const expected: S3PutConfiguration = {
                 ObjectPath: "ArtifactName::template.yaml",
                 BucketName: "MyBucket",
                 ObjectKey: "templates/template-${ArtifactName::build.json::version}.yaml"
@@ -41,14 +41,14 @@ describe("create-change-set-s3", () => {
             const expected: CodePipelineS3Location = null;
 
             chai.assert.deepEqual(s3Location, expected);
-        })
+        });
     });
 
     describe("resolveObjectKey()", () => {
         let s3GetObjectStub: any;
 
         beforeEach(() => {
-            s3GetObjectStub = sinon.stub(index.s3,"getObject");
+            s3GetObjectStub = sinon.stub(index.s3, "getObject");
         });
 
         afterEach(() => {
@@ -111,7 +111,7 @@ describe("create-change-set-s3", () => {
         let s3GetObjectStub: any;
 
         beforeEach(() => {
-            s3GetObjectStub = sinon.stub(index.s3,"getObject");
+            s3GetObjectStub = sinon.stub(index.s3, "getObject");
         });
 
         afterEach(() => {
@@ -121,9 +121,9 @@ describe("create-change-set-s3", () => {
         it("returns the body for a file that exists", async () => {
             s3GetObjectStub.callsFake(fakeS3Call);
 
-            const expected = '{\n\t"version": "1"\n}';
+            const expected = "{\n\t\"version\": \"1\"\n}";
 
-            const body = await index.getBodyFromZippedS3Object("inputBucket","inputArtifact.zip","build.json");
+            const body = await index.getBodyFromZippedS3Object("inputBucket", "inputArtifact.zip", "build.json");
 
             chai.assert.equal(body.toString("utf-8"), expected);
         });
@@ -131,14 +131,14 @@ describe("create-change-set-s3", () => {
         it("Rejects if the bucket doesn't exist", async () => {
             s3GetObjectStub.callsFake(fakeS3Call);
 
-            const promise = index.getBodyFromZippedS3Object("badBucket","inputArtifact.zip","build.json");
+            const promise = index.getBodyFromZippedS3Object("badBucket", "inputArtifact.zip", "build.json");
             await chai.assert.isRejected(promise);
         });
 
         it("Rejects if the object with key doesn't exist", async () => {
             s3GetObjectStub.callsFake(fakeS3Call);
 
-            const promise = index.getBodyFromZippedS3Object("inputBucket","badInputArtifact.zip","build.json");
+            const promise = index.getBodyFromZippedS3Object("inputBucket", "badInputArtifact.zip", "build.json");
             await chai.assert.isRejected(promise);
         });
 
@@ -146,7 +146,7 @@ describe("create-change-set-s3", () => {
             s3GetObjectStub.callsFake(fakeS3Call);
 
             // The following value is a base64 encoded version a zip file containing a file called build.json which has a json object with a version of 1
-            const promise = index.getBodyFromZippedS3Object("inputBucket","inputArtifact.zip","badBuild.json");
+            const promise = index.getBodyFromZippedS3Object("inputBucket", "inputArtifact.zip", "badBuild.json");
 
             await chai.assert.isRejected(promise);
         });
@@ -157,8 +157,8 @@ describe("create-change-set-s3", () => {
         let s3PutObjectStub: any;
 
         beforeEach(() => {
-            s3GetObjectStub = sinon.stub(index.s3,"getObject");
-            s3PutObjectStub = sinon.stub(index.s3,"putObject");
+            s3GetObjectStub = sinon.stub(index.s3, "getObject");
+            s3PutObjectStub = sinon.stub(index.s3, "putObject");
         });
 
         afterEach(() => {
@@ -167,7 +167,7 @@ describe("create-change-set-s3", () => {
         });
 
         it("Copies the buffer correctly", async () => {
-            const zippedBuildJsonBuffer = new Buffer("UEsDBAoAAAAAAPVSaEu6OgV9EwAAABMAAAAKABwAYnVpbGQuanNvblVUCQADrksDWrNLA1p1eAsAAQT1AQAABBQAAAB7CgkidmVyc2lvbiI6ICIxIgp9UEsBAh4DCgAAAAAA9VJoS7o6BX0TAAAAEwAAAAoAGAAAAAAAAQAAAKSBAAAAAGJ1aWxkLmpzb25VVAUAA65LA1p1eAsAAQT1AQAABBQAAABQSwUGAAAAAAEAAQBQAAAAVwAAAAAA","base64")
+            const zippedBuildJsonBuffer = Buffer.from("UEsDBAoAAAAAAPVSaEu6OgV9EwAAABMAAAAKABwAYnVpbGQuanNvblVUCQADrksDWrNLA1p1eAsAAQT1AQAABBQAAAB7CgkidmVyc2lvbiI6ICIxIgp9UEsBAh4DCgAAAAAA9VJoS7o6BX0TAAAAEwAAAAoAGAAAAAAAAQAAAKSBAAAAAGJ1aWxkLmpzb25VVAUAA65LA1p1eAsAAQT1AQAABBQAAABQSwUGAAAAAAEAAQBQAAAAVwAAAAAA", "base64");
 
             s3GetObjectStub.callsFake(fakeS3Call);
 
@@ -183,13 +183,13 @@ describe("create-change-set-s3", () => {
                             }
                         });
                     }
-                }
+                };
             });
 
             await index.copyArtifactResourceToS3("ArtifactName::build.json", "destination-bucket", "destination.json", sampleJob);
 
             const expected = [{
-                Body: Buffer.from('{\n\t"version": "1"\n}'),
+                Body: Buffer.from("{\n\t\"version\": \"1\"\n}"),
                 Bucket: "destination-bucket",
                 Key: "destination.json"
             }];
@@ -227,13 +227,13 @@ function fakeS3Call (request: S3.Types.GetObjectRequest) {
     return {
         promise: () => {
             return new Promise((resolve, reject) => {
-                if (request.Bucket != "inputBucket" || request.Key != "inputArtifact.zip") {
+                if (request.Bucket !== "inputBucket" || request.Key !== "inputArtifact.zip") {
                     reject("File not found");
-                    return
+                    return;
                 }
 
                 const fakeS3Object: S3.Types.GetObjectOutput = {
-                    Body: new Buffer("UEsDBAoAAAAAAPVSaEu6OgV9EwAAABMAAAAKABwAYnVpbGQuanNvblVUCQADrksDWrNLA1p1eAsAAQT1AQAABBQAAAB7CgkidmVyc2lvbiI6ICIxIgp9UEsBAh4DCgAAAAAA9VJoS7o6BX0TAAAAEwAAAAoAGAAAAAAAAQAAAKSBAAAAAGJ1aWxkLmpzb25VVAUAA65LA1p1eAsAAQT1AQAABBQAAABQSwUGAAAAAAEAAQBQAAAAVwAAAAAA","base64")
+                    Body: Buffer.from("UEsDBAoAAAAAAPVSaEu6OgV9EwAAABMAAAAKABwAYnVpbGQuanNvblVUCQADrksDWrNLA1p1eAsAAQT1AQAABBQAAAB7CgkidmVyc2lvbiI6ICIxIgp9UEsBAh4DCgAAAAAA9VJoS7o6BX0TAAAAEwAAAAoAGAAAAAAAAQAAAKSBAAAAAGJ1aWxkLmpzb25VVAUAA65LA1p1eAsAAQT1AQAABBQAAABQSwUGAAAAAAEAAQBQAAAAVwAAAAAA", "base64")
                 };
 
                 resolve(fakeS3Object);
@@ -249,11 +249,11 @@ const sampleJob: CodePipelineJob = {
         "actionConfiguration": {
             "configuration": {
                 "FunctionName": "MyLambdaFunctionForAWSCodePipeline",
-                "UserParameters": '{' +
-                    '"ObjectPath": "ArtifactName::template.yaml",' +
-                    '"BucketName": "MyBucket",' +
-                    '"ObjectKey": "templates/template-${ArtifactName::build.json::version}.yaml"' +
-                '}'
+                "UserParameters": "{" +
+                    "\"ObjectPath\": \"ArtifactName::template.yaml\"," +
+                    "\"BucketName\": \"MyBucket\"," +
+                    "\"ObjectKey\": \"templates/template-${ArtifactName::build.json::version}.yaml\"" +
+                "}"
             }
         },
         "inputArtifacts": [
