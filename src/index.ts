@@ -8,7 +8,7 @@ export let s3 = new AWS.S3();
 export let codepipeline = new AWS.CodePipeline();
 
 //noinspection JSUnusedGlobalSymbols
-async function handler(event: CodePipelineEvent, context: awslambda.Context): Promise<any> {
+export async function handler(event: CodePipelineEvent, context: awslambda.Context): Promise<any> {
     console.log("event", JSON.stringify(event, null, 2));
 
     const job: CodePipelineJob = event["CodePipeline.job"];

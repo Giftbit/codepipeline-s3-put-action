@@ -1,5 +1,5 @@
 {
-  "name": "odepipeline-s3-put-action",
+  "name": "codepipeline-s3-put-action",
   "version": "0.2.0",
   "description": "CodePipeline Custom Action to put Pipeline Resources into S3.",
   "scripts": {
