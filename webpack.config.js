@@ -63,7 +63,7 @@ module.exports = {
         new ZipPlugin({
             path: path.join(__dirname, 'dist'),
             pathPrefix: "",
-            filename: `dist.zip`
+            filename: `codepipeline-s3-put-action.zip`
         })
     ],
     target: 'node',
